@@ -32,6 +32,11 @@ router.post("/create-payment-intent", async (req, res) => {
             return res.status(400).json({ message: "Campaign not found" });
         }
 
+        // Prevent overpayment
+        if ((campaign.currentAmount || 0) + amount > campaign.amount) {
+            return res.status(400).json({ message: "This payment would exceed the campaign goal." });
+        }
+
         // Create payment intent
         const paymentIntent = await stripe.paymentIntents.create({
             amount: Math.round(amount * 100), // Stripe expects amount in cents
